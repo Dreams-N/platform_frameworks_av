@@ -3819,7 +3819,13 @@ static OMX_U32 setPFramesSpacing(int32_t iFramesInterval, int32_t frameRate) {
     return ret;
 }
 
-static OMX_VIDEO_CONTROLRATETYPE getBitrateMode(const sp<AMessage> &msg) {
+static OMX_VIDEO_CONTROLRATETYPE getBitrateMode(const sp<AMessage> &msg, const AString &name) {
+#ifdef CAPRI_HWC
+    // vc4 encoder only supports VBR
+    if (strncmp(name.c_str(), "OMX.BRCM.vc4.encoder.", 21) == 0) {
+        return OMX_Video_ControlRateVariable;
+    }
+#endif
     int32_t tmp;
     if (!msg->findInt32("bitrate-mode", &tmp)) {
         return OMX_Video_ControlRateVariable;
@@ -3835,7 +3841,7 @@ status_t ACodec::setupMPEG4EncoderParameters(const sp<AMessage> &msg) {
         return INVALID_OPERATION;
     }
 
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
+    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg, mComponentName);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
@@ -3916,7 +3922,7 @@ status_t ACodec::setupH263EncoderParameters(const sp<AMessage> &msg) {
         return INVALID_OPERATION;
     }
 
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
+    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg, mComponentName);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
@@ -4044,7 +4050,7 @@ status_t ACodec::setupAVCEncoderParameters(const sp<AMessage> &msg) {
         return INVALID_OPERATION;
     }
 
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
+    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg, mComponentName);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
@@ -4168,7 +4174,7 @@ status_t ACodec::setupHEVCEncoderParameters(const sp<AMessage> &msg) {
         return INVALID_OPERATION;
     }
 
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
+    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg, mComponentName);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
@@ -4235,7 +4241,7 @@ status_t ACodec::setupVPXEncoderParameters(const sp<AMessage> &msg) {
     }
     msg->findInt32("i-frame-interval", &iFrameInterval);
 
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
+    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg, mComponentName);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
